@@ -24,12 +24,13 @@ import com.duckduckgo.app.browser.BrowserWebViewClient.BrowserNavigationOptions
 import com.duckduckgo.app.trackerdetection.model.TrackingEvent
 
 interface WebViewClientListener {
-
     val url: String?
-    fun loadingStarted(url: String?)
-    fun progressChanged(progressedUrl: String?, newProgress: Int)
+
+    fun loadingStarted()
     fun loadingFinished(url: String? = null)
+    fun progressChanged(newProgress: Int)
     fun titleReceived(title: String)
+    fun urlChanged(url: String?)
     fun navigationOptionsChanged(navigationOptions: BrowserNavigationOptions)
     fun trackerDetected(event: TrackingEvent)
     fun pageHasHttpResources(page: String?)

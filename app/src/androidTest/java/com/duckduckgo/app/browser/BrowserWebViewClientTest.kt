@@ -23,9 +23,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.httpsupgrade.HttpsUpgrader
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.*
 import org.junit.Before
 import org.junit.Test
 
@@ -55,7 +53,14 @@ class BrowserWebViewClientTest {
     @Test
     fun whenOnPageStartedCalledThenListenerNotified() {
         testee.onPageStarted(webView, EXAMPLE_URL, null)
-        verify(listener).loadingStarted(EXAMPLE_URL)
+        verify(listener).loadingStarted()
+    }
+
+    @UiThreadTest
+    @Test
+    fun whenOnPageStartedCalledThenListenerNeverInstructedToUpdateUrl() {
+        testee.onPageStarted(webView, EXAMPLE_URL, null)
+        verify(listener, never()).urlChanged(any())
     }
 
     @UiThreadTest
@@ -70,6 +75,22 @@ class BrowserWebViewClientTest {
     fun whenOnPageFinishedCalledThenListenerInstructedToUpdateNavigationOptions() {
         testee.onPageFinished(webView, EXAMPLE_URL)
         verify(listener).navigationOptionsChanged(any())
+    }
+
+    @UiThreadTest
+    @Test
+    fun whenOnPageFinishedWithSameUrlThenUrlChangedNotCalled() {
+        whenever(listener.url).thenReturn(EXAMPLE_URL)
+        testee.onPageFinished(webView, EXAMPLE_URL)
+        verify(listener, never()).urlChanged(any())
+    }
+
+    @UiThreadTest
+    @Test
+    fun whenOnPageFinishedWithDifferentUrlThenUrlChangedCalled() {
+        whenever(listener.url).thenReturn("different.com")
+        testee.onPageFinished(webView, EXAMPLE_URL)
+        verify(listener).urlChanged(EXAMPLE_URL)
     }
 
     private class TestWebView(context: Context) : WebView(context)

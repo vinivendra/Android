@@ -245,7 +245,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenViewBecomesVisibleWithActiveSiteThenKeyboardHidden() {
-        changeUrl("http://exmaple.com")
+        testee.urlChanged("http://exmaple.com")
         testee.onViewVisible()
         verify(mockCommandObserver, atLeastOnce()).onChanged(commandCaptor.capture())
         assertTrue(commandCaptor.allValues.contains(Command.HideKeyboard))
@@ -253,7 +253,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenViewBecomesVisibleWithoutActiveSiteThenKeyboardShown() {
-        changeUrl(null)
+        testee.urlChanged(null)
         testee.onViewVisible()
         verify(mockCommandObserver, atLeastOnce()).onChanged(commandCaptor.capture())
         assertTrue(commandCaptor.allValues.contains(Command.ShowKeyboard))
@@ -267,13 +267,13 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenUrlPresentThenAddBookmarkButtonEnabled() {
-        changeUrl("www.example.com")
+        testee.urlChanged("www.example.com")
         assertTrue(browserViewState().canAddBookmarks)
     }
 
     @Test
     fun whenNoUrlThenAddBookmarkButtonDisabled() {
-        changeUrl(null)
+        testee.urlChanged(null)
         assertFalse(browserViewState().canAddBookmarks)
     }
 
@@ -313,7 +313,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenViewModelNotifiedThatWebViewIsLoadingThenViewStateIsUpdated() {
-        testee.loadingStarted("http://example.com")
+        testee.loadingStarted()
         assertTrue(loadingViewState().isLoading)
     }
 
@@ -324,15 +324,9 @@ class BrowserTabViewModelTest {
     }
 
     @Test
-    fun whenLoadingFinishedThenUrUpdated() {
-        val url = "http://example.com/abc"
-        testee.loadingFinished(url)
-        assertEquals(url, testee.url)
-    }
-
-    @Test
     fun whenLoadingFinishedWithUrlThenSiteVisitedEntryAddedToLeaderboardDao() {
-        testee.loadingFinished("http://example.com/abc")
+        testee.urlChanged("http://example.com/abc")
+        testee.loadingFinished(null)
         verify(mockNetworkLeaderboardDao).insert(SiteVisitedEntity("example.com"))
     }
 
@@ -353,7 +347,7 @@ class BrowserTabViewModelTest {
     @Test
     fun whenLoadingFinishedWithNoUrlThenOmnibarTextUpdatedToMatch() {
         val exampleUrl = "http://example.com/abc"
-        changeUrl(exampleUrl)
+        testee.urlChanged(exampleUrl)
         testee.loadingFinished(null)
         assertEquals(exampleUrl, omnibarViewState().omnibarText)
     }
@@ -388,84 +382,64 @@ class BrowserTabViewModelTest {
     }
 
     @Test
-    fun whenUrlStartsLoadingWithProgressChangeThenUrlUpdated() {
-        val url = "foo.com"
-        testee.loadingStarted(url)
-        testee.progressChanged(url, 10)
-        assertEquals(url, testee.url)
-    }
-
-    @Test
-    fun whenUrlStartsLoadingButProgressHasNotChangedThenUrlNotUpdated() {
-        testee.loadingStarted("foo.com")
-        assertNull(testee.url)
-    }
-
-    @Test
-    fun whenUrlHasNotStartedLoadingAndProgressChangeThenUrlNotUpdated() {
-        testee.progressChanged("foo.com", 10)
-        assertNull(testee.url)
-    }
-
-    @Test
     fun whenUrlChangedThenViewStateIsUpdated() {
-        changeUrl("duckduckgo.com")
+        testee.urlChanged("duckduckgo.com")
         assertEquals("duckduckgo.com", omnibarViewState().omnibarText)
     }
 
     @Test
     fun whenUrlChangedWithDuckDuckGoUrlContainingQueryThenUrlRewrittenToContainQuery() {
-        changeUrl("http://duckduckgo.com?q=test")
+        testee.urlChanged("http://duckduckgo.com?q=test")
         assertEquals("test", omnibarViewState().omnibarText)
     }
 
     @Test
     fun whenUrlChangedWithDuckDuckGoUrlContainingQueryThenAtbRefreshed() {
-        changeUrl("http://duckduckgo.com?q=test")
+        testee.urlChanged("http://duckduckgo.com?q=test")
         verify(mockStatisticsUpdater).refreshRetentionAtb()
     }
 
     @Test
     fun whenUrlChangedWithDuckDuckGoUrlNotContainingQueryThenFullUrlShown() {
-        changeUrl("http://duckduckgo.com")
+        testee.urlChanged("http://duckduckgo.com")
         assertEquals("http://duckduckgo.com", omnibarViewState().omnibarText)
     }
 
     @Test
     fun whenUrlChangedWithNonDuckDuckGoUrlThenFullUrlShown() {
-        changeUrl("http://example.com")
+        testee.urlChanged("http://example.com")
         assertEquals("http://example.com", omnibarViewState().omnibarText)
     }
 
     @Test
     fun whenViewModelGetsProgressUpdateThenViewStateIsUpdated() {
-        testee.progressChanged("", 0)
+        testee.progressChanged(0)
         assertEquals(0, loadingViewState().progress)
 
-        testee.progressChanged("", 50)
+        testee.progressChanged(50)
         assertEquals(50, loadingViewState().progress)
 
-        testee.progressChanged("", 100)
+        testee.progressChanged(100)
         assertEquals(100, loadingViewState().progress)
     }
 
     @Test
     fun whenLoadingStartedThenPrivacyGradeIsCleared() {
-        testee.loadingStarted("http://example.com")
+        testee.loadingStarted()
         assertNull(testee.privacyGrade.value)
     }
 
     @Test
     fun whenUrlChangedThenPrivacyGradeIsReset() {
         val grade = testee.privacyGrade.value
-        changeUrl("https://example.com")
+        testee.urlChanged("https://example.com")
         assertNotEquals(grade, testee.privacyGrade.value)
     }
 
     @Test
     fun whenEnoughTrackersDetectedThenPrivacyGradeIsUpdated() {
         val grade = testee.privacyGrade.value
-        changeUrl("https://example.com")
+        testee.urlChanged("https://example.com")
         for (i in 1..10) {
             testee.trackerDetected(TrackingEvent("https://example.com", "", null, false))
         }
@@ -480,14 +454,14 @@ class BrowserTabViewModelTest {
     @Test
     fun whenUrlUpdatedAfterConfigDownloadThenPrivacyGradeIsShown() {
         testee.appConfigurationObserver.onChanged(AppConfigurationEntity(appConfigurationDownloaded = true))
-        changeUrl("")
+        testee.urlChanged((""))
         assertTrue(browserViewState().showPrivacyGrade)
     }
 
     @Test
     fun whenUrlUpdatedBeforeConfigDownloadThenPrivacyGradeIsShown() {
         testee.appConfigurationObserver.onChanged(AppConfigurationEntity(appConfigurationDownloaded = false))
-        changeUrl("")
+        testee.urlChanged((""))
         assertFalse(browserViewState().showPrivacyGrade)
     }
 
@@ -782,7 +756,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenOnSiteAndBrokenSiteSelectedThenBrokenSiteFeedbackCommandSentWithUrl() {
-        changeUrl("foo.com")
+        testee.urlChanged("foo.com")
         testee.onBrokenSiteSelected()
         val command = captureCommands().value as Command.BrokenSiteFeedback
         assertEquals("foo.com", command.url)
@@ -836,11 +810,6 @@ class BrowserTabViewModelTest {
         whenever(webViewSessionStorage.restoreSession(anyOrNull(), anyString())).thenReturn(true)
         testee.restoreWebViewState(null, "")
         assertFalse(globalLayoutViewState().isNewTabState)
-    }
-
-    private fun changeUrl(url: String?) {
-        testee.loadingStarted(url)
-        testee.progressChanged(url, 100)
     }
 
     private fun captureCommands(): ArgumentCaptor<Command> {
