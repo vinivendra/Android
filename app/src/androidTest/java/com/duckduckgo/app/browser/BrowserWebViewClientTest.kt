@@ -88,9 +88,10 @@ class BrowserWebViewClientTest {
     @UiThreadTest
     @Test
     fun whenOnPageFinishedWithDifferentUrlThenUrlChangedCalled() {
-        whenever(listener.url).thenReturn("different.com")
-        testee.onPageFinished(webView, EXAMPLE_URL)
-        verify(listener).urlChanged(EXAMPLE_URL)
+        whenever(listener.url).thenReturn(EXAMPLE_URL)
+        val newUrl = "different.com"
+        testee.onPageFinished(webView, newUrl)
+        verify(listener).urlChanged(newUrl)
     }
 
     private class TestWebView(context: Context) : WebView(context)
