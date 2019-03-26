@@ -16,7 +16,7 @@
 
 package com.duckduckgo.app.httpsupgrade.api
 
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
 import com.duckduckgo.app.httpsupgrade.model.HttpsWhitelistedDomain
 import io.reactivex.Observable
 import okhttp3.ResponseBody
@@ -29,7 +29,7 @@ interface HttpsUpgradeService {
     fun whitelist(): Call<List<HttpsWhitelistedDomain>>
 
     @GET("https://staticcdn.duckduckgo.com/https/https-mobile-bloom-spec.json?cache_version=1")
-    fun httpsBloomFilterSpec(): Observable<HttpsBloomFilterSpec>
+    fun httpsBloomFilterSpec(): Observable<HTTPSBloomFilterSpecification>
 
     @GET("https://staticcdn.duckduckgo.com/https/https-mobile-bloom.bin?cache_version=1")
     fun httpsBloomFilter(): Call<ResponseBody>

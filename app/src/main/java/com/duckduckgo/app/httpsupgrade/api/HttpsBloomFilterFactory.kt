@@ -20,7 +20,7 @@ import androidx.annotation.WorkerThread
 import com.duckduckgo.app.global.store.BinaryDataStore
 import com.duckduckgo.app.httpsupgrade.BloomFilter
 import com.duckduckgo.app.httpsupgrade.db.HttpsBloomFilterSpecDao
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec.Companion.HTTPS_BINARY_FILE
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification.Companion.HTTPSBinaryFile
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,16 +36,16 @@ class HttpsBloomFilterFactoryImpl @Inject constructor(private val dao: HttpsBloo
     override fun create(): BloomFilter? {
 
         val specification = dao.get()
-        val dataPath = binaryDataStore.dataFilePath(HTTPS_BINARY_FILE)
+        val dataPath = binaryDataStore.dataFilePath(HTTPSBinaryFile)
 
         if (dataPath == null || specification == null) {
             Timber.d("Https update data not found")
             return null
         }
 
-        if (!binaryDataStore.verifyCheckSum(HTTPS_BINARY_FILE, specification.sha256)) {
+        if (!binaryDataStore.verifyCheckSum(HTTPSBinaryFile, specification.sha256)) {
             Timber.d("Https update data failed checksum, clearing")
-            binaryDataStore.clearData(HTTPS_BINARY_FILE)
+            binaryDataStore.clearData(HTTPSBinaryFile)
             return null
         }
 

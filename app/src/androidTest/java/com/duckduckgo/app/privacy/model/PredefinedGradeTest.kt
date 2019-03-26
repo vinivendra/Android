@@ -36,7 +36,7 @@ class PredefinedGradeTest(private val testCase: GradeTestCase) {
         grade.httpsAutoUpgrade = testCase.input.httpsAutoUpgrade
         grade.privacyScore = testCase.input.privacyScore
 
-        grade.setParentEntityAndPrevalence(testCase.input.parentEntity, testCase.input.parentTrackerPrevalence)
+        grade.setParentEntity(testCase.input.parentEntity, testCase.input.parentTrackerPrevalence)
 
         for (tracker in testCase.input.trackers) {
 

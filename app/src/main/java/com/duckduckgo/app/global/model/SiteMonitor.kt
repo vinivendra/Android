@@ -41,7 +41,7 @@ class SiteMonitor(
         gradeCalculator.privacyScore = privacyPractices.score
 
         memberNetwork?.let {
-            gradeCalculator.setParentEntityAndPrevalence(it.name, prevalenceStore.findPrevalenceOf(it.name))
+            gradeCalculator.setParentEntity(it.name, prevalenceStore.findPrevalenceOf(it.name))
         }
     }
 
@@ -110,12 +110,12 @@ class SiteMonitor(
     private fun privacyGrade(grade: Grade.Grading): PrivacyGrade {
         return when (grade) {
             Grade.Grading.A -> PrivacyGrade.A
-            Grade.Grading.B_PLUS -> PrivacyGrade.B_PLUS
+            Grade.Grading.BPlus -> PrivacyGrade.B_PLUS
             Grade.Grading.B -> PrivacyGrade.B
-            Grade.Grading.C_PLUS -> PrivacyGrade.C_PLUS
+            Grade.Grading.CPlus -> PrivacyGrade.C_PLUS
             Grade.Grading.C -> PrivacyGrade.C
             Grade.Grading.D -> PrivacyGrade.D
-            Grade.Grading.D_MINUS -> PrivacyGrade.D
+            Grade.Grading.DMinus -> PrivacyGrade.D
         }
     }
 

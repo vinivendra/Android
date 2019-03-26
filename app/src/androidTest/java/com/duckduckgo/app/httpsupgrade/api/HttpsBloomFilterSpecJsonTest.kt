@@ -16,7 +16,7 @@
 
 package com.duckduckgo.app.httpsupgrade.api
 
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
 import com.squareup.moshi.Moshi
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,7 +26,7 @@ class HttpsBloomFilterSpecJsonTest {
     @Test
     fun whenGivenValidJsonThenParsesCorrectly() {
         val moshi = Moshi.Builder().build()
-        val jsonAdapter = moshi.adapter(HttpsBloomFilterSpec::class.java)
+        val jsonAdapter = moshi.adapter(HTTPSBloomFilterSpecification::class.java)
         val result = jsonAdapter.fromJson(json())
         assertEquals(2858372, result.totalEntries)
         assertEquals(0.0001, result.errorRate, 0.00001)

@@ -23,8 +23,8 @@ import com.duckduckgo.app.global.store.BinaryDataStore
 import com.duckduckgo.app.httpsupgrade.HttpsUpgrader
 import com.duckduckgo.app.httpsupgrade.db.HttpsBloomFilterSpecDao
 import com.duckduckgo.app.httpsupgrade.db.HttpsWhitelistDao
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec.Companion.HTTPS_BINARY_FILE
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification.Companion.HTTPSBinaryFile
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.pixels.Pixel.PixelParameter.APP_VERSION
 import com.duckduckgo.app.statistics.pixels.Pixel.PixelParameter.FAILURE_COUNT
@@ -61,12 +61,12 @@ class HttpsUpgradeDataDownloader @Inject constructor(
             }
     }
 
-    private fun downloadBloomFilter(specification: HttpsBloomFilterSpec): Completable {
+    private fun downloadBloomFilter(specification: HTTPSBloomFilterSpecification): Completable {
         return fromAction {
 
             Timber.d("Downloading https bloom filter binary")
 
-            if (specification == httpsBloomSpecDao.get() && binaryDataStore.verifyCheckSum(HTTPS_BINARY_FILE, specification.sha256)) {
+            if (specification == httpsBloomSpecDao.get() && binaryDataStore.verifyCheckSum(HTTPSBinaryFile, specification.sha256)) {
                 Timber.d("Https bloom data already stored for this spec")
                 return@fromAction
             }
@@ -85,7 +85,7 @@ class HttpsUpgradeDataDownloader @Inject constructor(
             Timber.d("Updating https bloom data store with new data")
             appDatabase.runInTransaction {
                 httpsBloomSpecDao.insert(specification)
-                binaryDataStore.saveData(HTTPS_BINARY_FILE, bytes)
+                binaryDataStore.saveData(HTTPSBinaryFile, bytes)
             }
             httpsUpgrader.reloadData()
         }

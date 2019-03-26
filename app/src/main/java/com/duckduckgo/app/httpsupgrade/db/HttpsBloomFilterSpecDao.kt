@@ -20,7 +20,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
 import javax.inject.Singleton
 
 @Dao
@@ -28,8 +28,8 @@ import javax.inject.Singleton
 interface HttpsBloomFilterSpecDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(specification: HttpsBloomFilterSpec)
+    fun insert(specification: HTTPSBloomFilterSpecification)
 
     @Query("select * from https_bloom_filter_spec limit 1")
-    fun get(): HttpsBloomFilterSpec?
+    fun get(): HTTPSBloomFilterSpecification?
 }

@@ -1,169 +1,138 @@
-/*
- * Copyright (c) 2018 DuckDuckGo
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.duckduckgo.app.privacy.model
 
 import com.duckduckgo.app.privacy.model.Grade.Grading.*
 import com.squareup.moshi.Json
 
 class Grade {
+	companion object {
+		val unknownPrivacyScore: Int = 2
+		val maxPrivacyScore: Int = 10
+	}
 
-    enum class Grading {
+	public enum class Grading {
+		@Json(name = "A") A,
+		@Json(name = "B+") BPlus,
+		@Json(name = "B") B,
+		@Json(name = "C+") CPlus,
+		@Json(name = "C") C,
+		@Json(name = "D") D,
+		@Json(name = "D-") DMinus,
+	}
 
-        A,
-        @Json(name = "B+")
-        B_PLUS,
-        B,
-        @Json(name = "C+")
-        C_PLUS,
-        C,
-        D,
-        @Json(name = "D-")
-        D_MINUS
+	data class Score(
+			val grade: Grading,
+			val httpsScore: Int,
+			val privacyScore: Int,
+			val score: Int,
+			val trackerScore: Int
+	)
 
-    }
+	data class Scores(
+			val site: Score,
+			val enhanced: Score
+	)
 
+	val scores: Scores
+		get() {
+			if (calculatedScores == null) {
+				calculatedScores = calculate()
+			}
+			return calculatedScores!!
+		}
+	var https: Boolean = false
+	var httpsAutoUpgrade: Boolean = false
+	var parentEntity: String? = null
+	var privacyScore: Int? = null
+	var calculatedScores: Scores? = null
+	var entitiesBlocked: MutableMap<String, Double?> = mutableMapOf()
+	var entitiesNotBlocked: MutableMap<String, Double?> = mutableMapOf()
 
-    data class Score(
-        val grade: Grading,
-        val score: Int,
-        val httpsScore: Int,
-        val trackerScore: Int,
-        val privacyScore: Int
-    )
+	internal fun setParentEntity(entity: String?, prevalence: Double?) {
+		entity ?: return
+		addEntityNotBlocked(entity = entity, prevalence = prevalence)
+	}
 
-    data class Scores(
-        val site: Score,
-        val enhanced: Score
-    )
+	internal fun addEntityBlocked(entity: String, prevalence: Double?) {
+		calculatedScores = null
+		entitiesBlocked[entity] = prevalence
+	}
 
-    var https: Boolean = false
-    var httpsAutoUpgrade: Boolean = false
-    var privacyScore: Int? = null
+	internal fun addEntityNotBlocked(entity: String, prevalence: Double?) {
+		calculatedScores = null
+		entitiesNotBlocked[entity] = prevalence
+	}
 
-    val scores: Grade.Scores get() = calculate()
+	private fun calculate(): Grade.Scores {
+		val siteHttpsScore: Int
+		val enhancedHttpsScore: Int
 
-    private var entitiesNotBlocked: MutableMap<String, Double> = mutableMapOf()
-    private var entitiesBlocked: MutableMap<String, Double> = mutableMapOf()
+		if (httpsAutoUpgrade) {
+			siteHttpsScore = 0
+			enhancedHttpsScore = 0
+		}
+		else if (https) {
+			siteHttpsScore = 3
+			enhancedHttpsScore = 0
+		}
+		else {
+			siteHttpsScore = 10
+			enhancedHttpsScore = 10
+		}
 
-    private fun calculate(): Grade.Scores {
+		val privacyScore: Int = Math.min(this.privacyScore ?: Grade.unknownPrivacyScore, Grade.maxPrivacyScore)
+		val enhancedTrackerScore: Int = trackerScore(entities = entitiesNotBlocked)
+		val siteTrackerScore: Int = trackerScore(entities = entitiesBlocked) + enhancedTrackerScore
+		val siteTotalScore: Int = siteHttpsScore + siteTrackerScore + privacyScore
+		val enhancedTotalScore: Int = enhancedHttpsScore + enhancedTrackerScore + privacyScore
+		val siteGrade: Grading = grade(score = siteTotalScore)
+		val enhancedGrade: Grading = grade(score = enhancedTotalScore)
+		val site: Score = Score(
+				grade = siteGrade,
+				httpsScore = siteHttpsScore,
+				privacyScore = privacyScore,
+				score = siteTotalScore,
+				trackerScore = siteTrackerScore)
+		val enhanced: Score = Score(
+				grade = enhancedGrade,
+				httpsScore = enhancedHttpsScore,
+				privacyScore = privacyScore,
+				score = enhancedTotalScore,
+				trackerScore = enhancedTrackerScore)
 
-        // HTTPS
-        val siteHttpsScore: Int
-        val enhancedHttpsScore: Int
+		return Scores(site = site, enhanced = enhanced)
+	}
 
-        if (httpsAutoUpgrade) {
-            siteHttpsScore = 0
-            enhancedHttpsScore = 0
-        } else if (https) {
-            siteHttpsScore = 3
-            enhancedHttpsScore = 0
-        } else {
-            siteHttpsScore = 10
-            enhancedHttpsScore = 10
-        }
+	private fun trackerScore(entities: MutableMap<String, Double?>): Int {
+		return entities.entries.fold(initial = 0, operation = { result, keyValue -> result + score(prevalence = keyValue.value) })
+	}
 
-        // PRIVACY
-        val privacyScore = Math.min(privacyScore ?: UNKNOWN_PRIVACY_SCORE, MAX_PRIVACY_SCORE)
+	private fun score(prevalence: Double?): Int {
+		if (!(prevalence != null && prevalence > 0.0)) {
+			return 0
+		}
+		return when (prevalence) {
+			in (0.0).rangeTo(0.1) -> 1
+			in (0.1).rangeTo(1.0) -> 2
+			in (1.0).rangeTo(5.0) -> 3
+			in (5.0).rangeTo(10.0) -> 4
+			in (10.0).rangeTo(15.0) -> 5
+			in (15.0).rangeTo(20.0) -> 6
+			in (20.0).rangeTo(30.0) -> 7
+			in (30.0).rangeTo(45.0) -> 8
+			in (45.0).rangeTo(66.0) -> 9
+			else -> 10
+		}
+	}
 
-        // TRACKERS
-        val enhancedTrackerScore = trackerScore(entitiesNotBlocked)
-        val siteTrackerScore = trackerScore(entitiesBlocked) + enhancedTrackerScore
-
-        // TOTALS
-        val siteTotalScore = siteHttpsScore + siteTrackerScore + privacyScore
-        val enhancedTotalScore = enhancedHttpsScore + enhancedTrackerScore + privacyScore
-
-        // GRADES
-        val siteGrade = gradeForScore(siteTotalScore)
-        val enhancedGrade = gradeForScore(enhancedTotalScore)
-
-        val site = Score(
-            grade = siteGrade,
-            httpsScore = siteHttpsScore,
-            privacyScore = privacyScore,
-            score = siteTotalScore,
-            trackerScore = siteTrackerScore
-        )
-
-        val enhanced = Score(
-            grade = enhancedGrade,
-            httpsScore = enhancedHttpsScore,
-            privacyScore = privacyScore,
-            score = enhancedTotalScore,
-            trackerScore = enhancedTrackerScore
-        )
-
-        return Scores(site = site, enhanced = enhanced)
-    }
-
-    private fun gradeForScore(score: Int): Grading {
-        return when {
-            score <= 1 -> A
-            score <= 3 -> B_PLUS
-            score <= 9 -> B
-            score <= 13 -> C_PLUS
-            score <= 19 -> C
-            score <= 29 -> D
-            else -> D_MINUS
-        }
-    }
-
-    private fun trackerScore(entities: Map<String, Double>): Int {
-        return entities.entries.fold(0) { acc, entry ->
-            acc + scoreFromPrevalence(entry.value)
-        }
-    }
-
-    private fun scoreFromPrevalence(prevalence: Double): Int {
-        return when {
-            prevalence <= 0.0 -> 0
-            prevalence <= 0.1 -> 1
-            prevalence <= 1.0 -> 2
-            prevalence <= 5.0 -> 3
-            prevalence <= 10.0 -> 4
-            prevalence <= 15.0 -> 5
-            prevalence <= 20.0 -> 6
-            prevalence <= 30.0 -> 7
-            prevalence <= 45.0 -> 8
-            prevalence <= 66.0 -> 9
-            else -> 10
-        }
-    }
-
-    fun setParentEntityAndPrevalence(parentEntity: String?, prevalence: Double?) {
-        parentEntity ?: return
-        addEntityNotBlocked(parentEntity, prevalence)
-    }
-
-    fun addEntityNotBlocked(entity: String, prevalence: Double?) {
-        prevalence ?: return
-        entitiesNotBlocked[entity] = prevalence
-    }
-
-    fun addEntityBlocked(entity: String, prevalence: Double?) {
-        prevalence ?: return
-        entitiesBlocked[entity] = prevalence
-    }
-
-    companion object {
-
-        const val UNKNOWN_PRIVACY_SCORE = 2
-        const val MAX_PRIVACY_SCORE = 10
-
-    }
-
+	private fun grade(score: Int): Grade.Grading {
+		return when (score) {
+			in Int.MIN_VALUE until 2 -> A
+			in 2 until 4 -> BPlus
+			in 4 until 10 -> B
+			in 10 until 14 -> CPlus
+			in 14 until 20 -> C
+			in 20 until 30 -> D
+			else -> DMinus
+		}
+	}
 }

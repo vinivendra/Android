@@ -19,7 +19,7 @@ package com.duckduckgo.app.httpsupgrade.db
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.global.db.AppDatabase
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -48,14 +48,14 @@ class HttpsBloomFilterSpecDaoTest {
 
     @Test
     fun whenModelIsInsertedThenGetIsNotNull() {
-        dao.insert(HttpsBloomFilterSpec(errorRate = 0.1, totalEntries = 55, sha256 = "abc"))
+        dao.insert(HTTPSBloomFilterSpecification(errorRate = 0.1, totalEntries = 55, sha256 = "abc"))
         assertNotNull(dao.get())
     }
 
     @Test
     fun whenNewModelIsInsertedThenGetIsNotNullAndDetailsUpdates() {
-        dao.insert(HttpsBloomFilterSpec(errorRate = 0.1, totalEntries = 55, sha256 = "abc"))
-        dao.insert(HttpsBloomFilterSpec(errorRate = 0.2, totalEntries = 60, sha256 = "xyz"))
+        dao.insert(HTTPSBloomFilterSpecification(errorRate = 0.1, totalEntries = 55, sha256 = "abc"))
+        dao.insert(HTTPSBloomFilterSpecification(errorRate = 0.2, totalEntries = 60, sha256 = "xyz"))
 
         val specification = dao.get()
         assertNotNull(specification)

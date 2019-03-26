@@ -35,7 +35,7 @@ import com.duckduckgo.app.feedback.db.SurveyDao
 import com.duckduckgo.app.feedback.model.Survey
 import com.duckduckgo.app.httpsupgrade.db.HttpsBloomFilterSpecDao
 import com.duckduckgo.app.httpsupgrade.db.HttpsWhitelistDao
-import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec
+import com.duckduckgo.app.httpsupgrade.model.HTTPSBloomFilterSpecification
 import com.duckduckgo.app.httpsupgrade.model.HttpsWhitelistedDomain
 import com.duckduckgo.app.notification.db.NotificationDao
 import com.duckduckgo.app.notification.model.Notification
@@ -55,7 +55,7 @@ import com.duckduckgo.app.usage.search.SearchCountEntity
 @Database(
     exportSchema = true, version = 10, entities = [
         DisconnectTracker::class,
-        HttpsBloomFilterSpec::class,
+        HTTPSBloomFilterSpecification::class,
         HttpsWhitelistedDomain::class,
         NetworkLeaderboardEntry::class,
         SiteVisitedEntity::class,
