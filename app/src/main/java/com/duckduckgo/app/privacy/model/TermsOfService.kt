@@ -19,56 +19,84 @@ package com.duckduckgo.app.privacy.model
 import com.duckduckgo.app.privacy.model.PrivacyPractices.Summary.*
 
 data class TermsOfService(
-    val name: String? = null,
-    val score: Int = 0,
-    val classification: String? = null,
-    val goodPrivacyTerms: List<String> = ArrayList(),
-    val badPrivacyTerms: List<String> = ArrayList()
+	val name: String? = null,
+	val classification: Classification? = null,
+	val score: Int = 0,
+	val goodReasons: MutableList<String> = mutableListOf(),
+	val badReasons: MutableList<String> = mutableListOf()
 ) {
+	val hasGoodReasons: Boolean
+		get() {
+			return !goodReasons.isEmpty()
+		}
+	val hasBadReasons: Boolean
+		get() {
+			return !badReasons.isEmpty()
+		}
+	val summary: PrivacyPractices.Summary
+		get() {
+			if (classification != null) {
+				when (classification) {
+					Classification.A -> return GOOD
+					Classification.B -> return MIXED
+					Classification.C -> return POOR
+					Classification.D -> return POOR
+				}
+			}
 
-    val practices: PrivacyPractices.Summary
-        get() {
+			if (hasGoodReasons && hasBadReasons) {
+				return MIXED
+			}
 
-            when (classification) {
+			if (score < 0) {
+				return GOOD
+			}
+			else if (score == 0 && (hasGoodReasons || hasBadReasons)) {
+				return MIXED
+			}
+			else if (score > 0) {
+				return POOR
+			}
 
-                "A" -> return GOOD
-                "B" -> return MIXED
-                "C" -> return POOR
-                "D" -> return POOR
+			return UNKNOWN
+		}
+	val derivedScore: Int
+		get() {
+			var derived: Int = 5
+			if (classification == Classification.A) {
+				derived = 0
+			}
+			else if (classification == Classification.B) {
+				derived = 1
+			}
+			else if (classification == Classification.D || score > 150) {
+				derived = 10
+			}
+			else if (classification == Classification.C || score > 100) {
+				derived = 7
+			}
+			return derived
+		}
 
-            }
+	public enum class Classification {
+		A,
+		B,
+		C,
+		D,
+		E;
 
-            if (goodPrivacyTerms.isNotEmpty() && badPrivacyTerms.isNotEmpty()) {
-                return MIXED
-            }
-
-            if (score < 0) {
-                return GOOD
-            } else if (score == 0 && (goodPrivacyTerms.isNotEmpty() || badPrivacyTerms.isNotEmpty())) {
-                return MIXED
-            } else if (score > 0) {
-                return POOR
-            }
-
-            return UNKNOWN
-        }
-
-    val derivedScore: Int
-        get() {
-            var derived = 5
-
-            // assign a score value to the classes/scores provided in the JSON file
-            if (classification == "A") {
-                derived = 0
-            } else if (classification == "B") {
-                derived = 1
-            } else if (classification == "D" || score > 150) {
-                derived = 10
-            } else if (classification == "C" || score > 100) {
-                derived = 7
-            }
-
-            return derived
-        }
-
+		companion object {
+			operator fun invoke(string: String?): TermsOfService.Classification? {
+				string ?: return null
+				return when (string) {
+					"A" -> A
+					"B" -> B
+					"C" -> C
+					"D" -> D
+					"E" -> E
+					else -> null
+				}
+			}
+		}
+	}
 }

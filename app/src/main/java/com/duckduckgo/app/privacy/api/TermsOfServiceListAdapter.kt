@@ -25,8 +25,8 @@ class TermsOfServiceListAdapter {
     fun fromJson(json: Map<String, TermsOfServiceJson>): List<TermsOfService> {
         val tos = ArrayList<TermsOfService>()
         for (entry in json) {
-            val classification = entry.value.classification as? String
-            tos.add(TermsOfService(entry.key, entry.value.score, classification, entry.value.match.good, entry.value.match.bad))
+            val classification = TermsOfService.Classification(string = entry.value.classification as? String)
+            tos.add(TermsOfService(entry.key, classification, entry.value.score, entry.value.match.good.toMutableList(), entry.value.match.bad.toMutableList()))
         }
         return tos
     }

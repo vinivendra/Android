@@ -44,7 +44,7 @@ class PrivacyPracticesTest {
     fun whenUrlButNoParentEntityThenStillHasScore() {
         whenever(mockTermsStore.terms).thenReturn(
             listOf(
-                TermsOfService("example.com", classification = "D")
+                TermsOfService("example.com", classification = TermsOfService.Classification.D)
             )
         )
 
@@ -58,10 +58,10 @@ class PrivacyPracticesTest {
     fun whenUrlHasParentEntityThenItsScoreIsWorstInNetwork() {
         whenever(mockTermsStore.terms).thenReturn(
             listOf(
-                TermsOfService("sibling1.com", classification = "A"),
-                TermsOfService("sibling2.com", classification = "B"),
-                TermsOfService("sibling3.com", classification = "C"),
-                TermsOfService("sibling4.com", classification = "D")
+                TermsOfService("sibling1.com", classification = TermsOfService.Classification.A),
+                TermsOfService("sibling2.com", classification = TermsOfService.Classification.B),
+                TermsOfService("sibling3.com", classification = TermsOfService.Classification.C),
+                TermsOfService("sibling4.com", classification = TermsOfService.Classification.D)
             )
         )
 
@@ -81,7 +81,7 @@ class PrivacyPracticesTest {
 
     @Test
     fun whenUrlHasMatchingEntityWithTermsThenPracticesAreReturned() {
-        whenever(mockTermsStore.terms).thenReturn(listOf(TermsOfService("example.com", classification = "A")))
+        whenever(mockTermsStore.terms).thenReturn(listOf(TermsOfService("example.com", classification = TermsOfService.Classification.A)))
 
         entityMapping.updateEntities(listOf(EntityListEntity("example.com", "Network")))
 

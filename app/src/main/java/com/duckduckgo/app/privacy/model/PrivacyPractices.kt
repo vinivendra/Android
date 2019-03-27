@@ -82,7 +82,7 @@ class PrivacyPracticesImpl @Inject constructor(
         val entity = entityMapping.entityForUrl(url)
         val terms = termsOfServiceStore.terms.find { sameOrSubdomain(url, it.name ?: "") } ?: return PrivacyPractices.UNKNOWN
         val score = entityScores[entity?.entityName] ?: terms.derivedScore
-        return PrivacyPractices.Practices(score, terms.practices, terms.goodPrivacyTerms, terms.badPrivacyTerms)
+        return PrivacyPractices.Practices(score, terms.summary, terms.goodReasons, terms.badReasons)
     }
 
 }

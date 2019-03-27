@@ -46,14 +46,14 @@ class TermsOfServiceListAdapterTest {
         val firstTerm = terms.first { it.name == "example.com" }
         assertEquals(-20, firstTerm.score)
         assertNull(firstTerm.classification)
-        assertEquals(1, firstTerm.goodPrivacyTerms.count())
-        assertEquals(3, firstTerm.badPrivacyTerms.count())
+        assertEquals(1, firstTerm.goodReasons.count())
+        assertEquals(3, firstTerm.badReasons.count())
 
         val secondTerm = terms.first { it.name == "anotherexample.com" }
         assertEquals(50, secondTerm.score)
-        assertEquals("B", secondTerm.classification)
-        assertEquals(1, secondTerm.goodPrivacyTerms.count())
-        assertEquals(0, secondTerm.badPrivacyTerms.count())
+        assertEquals(TermsOfService.Classification.B, secondTerm.classification)
+        assertEquals(1, secondTerm.goodReasons.count())
+        assertEquals(0, secondTerm.badReasons.count())
     }
 
     @Test(expected = JsonDataException::class)

@@ -37,12 +37,12 @@ class TermsOfServiceScoreTest(private val testCase: TermsOfServiceScoreTestCase)
             return arrayOf(
                 // scores
 
-                TermsOfServiceScoreTestCase(0, TermsOfService(classification = "A", score = 0)),
-                TermsOfServiceScoreTestCase(1, TermsOfService(classification = "B", score = 0)),
+                TermsOfServiceScoreTestCase(0, TermsOfService(classification = TermsOfService.Classification.A, score = 0)),
+                TermsOfServiceScoreTestCase(1, TermsOfService(classification = TermsOfService.Classification.B, score = 0)),
                 TermsOfServiceScoreTestCase(5, TermsOfService(classification = null, score = 0)),
-                TermsOfServiceScoreTestCase(7, TermsOfService(classification = "C", score = 0)),
+                TermsOfServiceScoreTestCase(7, TermsOfService(classification = TermsOfService.Classification.C, score = 0)),
                 TermsOfServiceScoreTestCase(7, TermsOfService(classification = null, score = 101)),
-                TermsOfServiceScoreTestCase(10, TermsOfService(classification = "D", score = 0)),
+                TermsOfServiceScoreTestCase(10, TermsOfService(classification = TermsOfService.Classification.D, score = 0)),
                 TermsOfServiceScoreTestCase(10, TermsOfService(classification = null, score = 151))
 
             )
